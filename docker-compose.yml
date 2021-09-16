@@ -1,0 +1,131 @@
+version: '3.7'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.5.1
+    hostname: zookeeper
+    container_name: zookeeper
+    restart: on-failure
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - kafka-network
+  broker:
+    image: confluentinc/cp-server:5.5.1
+    hostname: broker
+    container_name: broker
+    restart: on-failure
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+      - "9010:9010"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'false'
+      KAFKA_JMX_HOSTNAME: "127.0.0.1"
+      KAFKA_JMX_PORT: 9010
+    networks:
+      - kafka-network
+  jdbc-source-connect:
+    image: debezium/connect:latest
+    container_name: jdbc-source-connect
+    restart: on-failure
+    depends_on:
+      - zookeeper
+      - broker
+    ports:
+      - "8083:8083"
+    environment:
+      GROUP_ID: 2
+      BOOTSTRAP_SERVERS: broker:29092
+      CONFIG_STORAGE_TOPIC: kafka_connect_configs
+      OFFSET_STORAGE_TOPIC: kafka_connect_offsets
+      STATUS_STORAGE_TOPIC: kafka_connect_statuses
+    # *-----------------------------*
+    # Head to https://www.confluent.io/hub/ and download confluent-kafka-connect-jdbc - direct url https://www.confluent.io/hub/confluentinc/kafka-connect-jdbc :
+    # unzip in jars folder and use appropriate directory path in my case it's "/home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/" till jars directory
+    # *-----------------------------*
+    volumes:
+      - /home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/jars/confluentinc-kafka-connect-jdbc-10.0.1/lib:/kafka/connect/jdbc-connector/
+    networks:
+      - kafka-network
+#for JDBC sink
+  elasticsearch-jdbc-sink-connect:
+    image: debezium/connect:1.0
+    container_name: elasticsearch-jdbc-connect
+    restart: on-failure
+    depends_on:
+      - zookeeper
+      - broker
+      - elastic-search
+    ports:
+      - "8086:8083"
+    environment:
+      GROUP_ID: 4
+      BOOTSTRAP_SERVERS: broker:29092
+      CONFIG_STORAGE_TOPIC: kafka_connect_configs
+      OFFSET_STORAGE_TOPIC: kafka_connect_offsets
+      STATUS_STORAGE_TOPIC: kafka_connect_statuses
+    # *-----------------------------*
+    # Head to https://www.confluent.io/hub/ and download confluent-kafka-connect-elasticsearch - direct url https://www.confluent.io/hub/confluentinc/kafka-connect-elasticsearch :
+    # unzip in jars folder and use appropriate directory path in my case it's "/home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/"
+    # *-----------------------------*
+    volumes:
+      - /home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/jars/confluentinc-kafka-connect-elasticsearch-10.0.2/lib:/kafka/connect/elasticsearch
+    networks:
+      - kafka-network
+  ui:
+    container_name: ui
+    image: debezium/debezium-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CONNECT_URI: http://jdbc-source-connect:8083
+    depends_on:
+      - jdbc-source-connect
+    networks:
+      - kafka-network
+  elastic-search:
+    image: elasticsearch:7.10.1
+    container_name: elastic-search
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+    networks:
+      - kafka-network
+  postgres:
+    # *-----------------------------*
+    # To connect to the DB:
+    #   docker exec -it postgres bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB'
+    # *-----------------------------*
+    image: postgres:alpine
+    restart: on-failure
+    container_name: postgres
+    command: postgres -c wal_level=logical
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - kafka-network
+
+networks:
+  kafka-network:
+    driver: bridge
