@@ -65,7 +65,7 @@ kafka-console-consumer --bootstrap-server broker:9092 --topic test.public.a_tabl
 -- TODO 14- Now let's add new table to test database
 CREATE TABLE b_table (
     web_id       bigint                                 not null
-        constraint pk_a_table
+        constraint pk_b_table
             primary key,
     version      integer                  default 0     not null,
     date_updated timestamp with time zone default now() not null,
