@@ -1,16 +1,31 @@
--- TODO 01- POSTGRES Bash
+-- TODO 01-
+    # *-----------------------------*
+    # Open POSTGRES Bash
+    # *-----------------------------*
 sudo docker exec -it postgres bash
 
--- TODO 02- connect to PSQL
+-- TODO 02-
+    # *-----------------------------*
+    # Connect to PSQL - 'psql -U $POSTGRES_USER $POSTGRES_DB'
+    # *-----------------------------*
 psql -U postgres postgres
 
--- TODO 03- Create database
+-- TODO 03-
+    # *-----------------------------*
+    # Create database
+    # *-----------------------------*
 CREATE DATABASE test;
 
--- TODO 04- connect to database
+-- TODO 04-
+    # *-----------------------------*
+    # connect to database
+    # *-----------------------------*
  \c test;
 
--- TODO 05- Create a table
+-- TODO 05-
+    # *-----------------------------*
+    # Create a table
+    # *-----------------------------*
 CREATE TABLE a_table
 (
     web_id       bigint                                 not null
@@ -22,12 +37,18 @@ CREATE TABLE a_table
     item         varchar(40)
 );
 
--- TODO 06- Change replica identity to full
+-- TODO 06-
+    # *-----------------------------*
+    # Change replica identity to full
+    # *-----------------------------*
 ALTER TABLE public.a_table
     REPLICA IDENTITY FULL;
 
--- TODO 07- Verify replica identity of the table which we have just altered
--- TODO Make sure it has the same value which we have set e.g. full in our case
+-- TODO 07-
+    # *-----------------------------*
+    # Verify replica identity of the table which we have just altered
+    # Make sure it has the same value which we have set e.g. full in our case
+    # *-----------------------------*
 SELECT CASE relreplident
            WHEN 'd' THEN 'default'
            WHEN 'n' THEN 'nothing'
@@ -37,32 +58,61 @@ SELECT CASE relreplident
 FROM pg_class
 WHERE oid in ('a_table'::regclass);
 
--- TODO 08- Create publication
+-- TODO 08-
+    # *-----------------------------*
+    # Create publication
+    # *-----------------------------*
 CREATE PUBLICATION dbz_full_publication
     FOR TABLE a_table;
 
--- TODO 09- List of publications and verify if our publication is in the list
+-- TODO 09-
+    # *-----------------------------*
+    # List of publications and verify if our publication is in the list
+    # *-----------------------------*
 SELECT * FROM pg_publication;
 
--- TODO 10- Now create connector using configuration in Kafka Connector Configuration.json
+-- TODO 10-
+    # *-----------------------------*
+    # Now create connector using configuration in 01- Create Kafka Connect CDC Configurations.json,
+    # And now we can do a POST request to http://localhost:8083/connectors/
+    # *-----------------------------*
 
--- TODO 11.1- After creating connector, now check status of replica publisher - column state is important which should be streaming - reference https://www.enterprisedb.com/blog/monitoring-approach-streaming-replication-hot-standby-postgresql-93
+
+
+-- TODO 11.1-
+    # *-----------------------------*
+    #  After creating connector, now check status of replica publisher - column state is important which should be streaming
+    #  - reference https://www.enterprisedb.com/blog/monitoring-approach-streaming-replication-hot-standby-postgresql-93
+    # *-----------------------------*
 SELECT * FROM pg_stat_replication;
 
--- TODO 11.2- We should also have a slot automatically created by Debezium Kafka Connector in database in case it doesn't exist or if exists then it should subscribe to that.
---TODO We can confirm our slotName from connector configuration from this key "slot.name": "yourSlotNameGoesHere". Connector configuration and result from below query should have same name.
+-- TODO 11.2-
+    # *-----------------------------*
+    # We should also have a slot automatically created by Debezium Kafka Connector in database in case it doesn't exist or if exists then it should subscribe to that.
+    # We can confirm our slotName from connector configuration from this key "slot.name": "yourSlotNameGoesHere".
+    # Connector configuration and result from below query should have same name.
+    # *-----------------------------*
 SELECT * FROM pg_replication_slots;
 
--- TODO 12- Insert data records in the table
+-- TODO 12-
+    # *-----------------------------*
+    # Insert data records in the table
+    # *-----------------------------*
 INSERT INTO a_table (web_id, item) VALUES (1, 'item1');
 UPDATE a_table set item='item1 updated' where web_id=1;
 UPDATE a_table set date_updated=now() where web_id=1;
 
--- TODO 13 subscribe to kafka topic using console consumer or you can verify that using other techniques of your choice
+-- TODO 13-
+    # *-----------------------------*
+    # Subscribe to kafka topic using console consumer or you can verify that using other techniques of your choice
+    # *-----------------------------*
 kafka-console-consumer --bootstrap-server broker:9092 --topic test.public.a_table --from-beginning
 
 
--- TODO 14- Now let's add new table to test database
+-- TODO 14-
+    # *-----------------------------*
+    # Now let's add new table to test database
+    # *-----------------------------*
 CREATE TABLE b_table (
     web_id       bigint                                 not null
         constraint pk_b_table
@@ -73,12 +123,18 @@ CREATE TABLE b_table (
     item         varchar(40)
 );
 
--- TODO 15-  Change replica identity to full as we have done for a_table
+-- TODO 15-
+    # *-----------------------------*
+    # Change replica identity to full as we have done for a_table
+    # *-----------------------------*
 alter table public.b_table
     replica identity full;
 
--- TODO 16- Verify replica identity of the table which we have just altered
--- TODO Make sure it has the same value which we have set e.g. full in our case
+-- TODO 16-
+    # *-----------------------------*
+    # Verify replica identity of the table which we have just altered
+    # Make sure it has the same value which we have set e.g. full in our case
+    # *-----------------------------*
 SELECT CASE relreplident
            WHEN 'd' THEN 'default'
            WHEN 'n' THEN 'nothing'
@@ -88,17 +144,29 @@ SELECT CASE relreplident
 FROM pg_class
 WHERE oid in ('b_table'::regclass);
 
--- TODO 17- Drop existing publication becau
+-- TODO 17-
+    # *-----------------------------*
+    # Drop existing publication
+    # *-----------------------------*
 DROP PUBLICATION dbz_full_publication;
 
--- TODO 18- Recreate publication with the necessary tables
+-- TODO 18-
+    # *-----------------------------*
+    # Recreate publication with the necessary tables
+    # *-----------------------------*
 CREATE PUBLICATION dbz_full_publication
     FOR TABLE a_table, b_table;
 
--- TODO Step 12- Table which are set to publish events - CDC
+-- TODO 19-
+    # *-----------------------------*
+    # Now update connector using configuration in 02- Update Kafka Connect CDC Configurations.json,
+    # And now we can do a PUT request to http://localhost:8083/connectors/local-cdc-with-test-database/config
+    # *-----------------------------*
 
-
--- TODO 19- Insert data records in the table
+-- TODO 20-
+    # *-----------------------------*
+    # Insert data records in the table
+    # *-----------------------------*
 INSERT INTO b_table (web_id, item) VALUES (1, 'item1');
 INSERT INTO b_table (web_id, item) VALUES (2, 'item2');
 UPDATE b_table set item='item2 updated' where web_id=2;
@@ -106,4 +174,7 @@ INSERT INTO b_table (web_id, item) VALUES (3, 'Delete me please');
 delete from b_table where web_id=3;
 
 
---TODO 20- happy ending...
+--TODO 21- happy ending...
+    # *-----------------------------*
+    # Feel free to contact me in case you face any issue
+    # *-----------------------------*
