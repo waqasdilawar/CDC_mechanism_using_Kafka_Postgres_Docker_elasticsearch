@@ -51,12 +51,16 @@ services:
       - broker
     ports:
       - "8083:8083"
+      - "9012:9012"
     environment:
       GROUP_ID: 2
       BOOTSTRAP_SERVERS: broker:29092
-      CONFIG_STORAGE_TOPIC: kafka_connect_configs
-      OFFSET_STORAGE_TOPIC: kafka_connect_offsets
-      STATUS_STORAGE_TOPIC: kafka_connect_statuses
+      CONFIG_STORAGE_TOPIC: kafka_connect_configss
+      OFFSET_STORAGE_TOPIC: kafka_connect_offsetss
+      STATUS_STORAGE_TOPIC: kafka_connect_statusess
+      #KAFKA_OPTS: -javaagent:/kafka/connect-agent/agent.jar=8080:/kafka/etc/config.yml
+      JMXHOST: "0.0.0.0"
+      JMXPORT: 9012
     # *-----------------------------*
     # Head to https://www.confluent.io/hub/ and download confluent-kafka-connect-jdbc - direct url https://www.confluent.io/hub/confluentinc/kafka-connect-jdbc :
     # unzip in jars folder and use appropriate directory path in my case it's "/home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/" till jars directory
@@ -94,7 +98,7 @@ services:
     container_name: ui
     image: debezium/debezium-ui
     ports:
-      - "8080:8080"
+      - "8088:8080"
     environment:
       KAFKA_CONNECT_URI: http://jdbc-source-connect:8083
     depends_on:
@@ -125,7 +129,21 @@ services:
       - POSTGRES_PASSWORD=postgres
     networks:
       - kafka-network
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9001:9090"
+    depends_on:
+      - jdbc-source-connect
+    volumes:
+      - /home/waqasdilawar/promtheus:/etc/prometheus/
+      - prometheus-data:/prometheus
+    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - kafka-network
 
 networks:
   kafka-network:
     driver: bridge
+volumes:
+  prometheus-data:
