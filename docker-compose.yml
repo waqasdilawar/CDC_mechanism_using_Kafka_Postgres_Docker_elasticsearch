@@ -144,7 +144,7 @@ services:
     depends_on:
       - jdbc-source-connect
     volumes:
-      - /home/waqasdilawar/promtheus:/etc/prometheus/
+      - /home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/prometheus:/etc/prometheus/
       - prometheus-data:/prometheus
     command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
     networks:
