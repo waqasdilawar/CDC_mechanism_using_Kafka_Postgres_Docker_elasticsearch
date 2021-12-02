@@ -14,10 +14,10 @@ Using Debezium requires three separate services: ZooKeeper, Kafka, and the Debez
 
 The Debezium PostgreSQL connector provides two types of metrics that are in addition to the built-in support for JMX metrics that Zookeeper, Kafka, and Kafka Connect provide.
 
-###Snapshot metrics:
+**Snapshot metrics:**
 provide information about connector operation while performing a snapshot.
 
-###Streaming metrics:
+**Streaming metrics:**
 provide information about connector operation when the connector is capturing changes and streaming change event records.
 
 [Debezium monitoring documentation](https://debezium.io/documentation/reference/stable/operations/monitoring.html#monitoring-debezium) provides details for how to expose these metrics by using JMX.
