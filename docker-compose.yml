@@ -68,12 +68,12 @@ services:
       JMXPORT: 9012
     # *-----------------------------*
     # Head to https://www.confluent.io/hub/ and download confluent-kafka-connect-jdbc - direct url https://www.confluent.io/hub/confluentinc/kafka-connect-jdbc :
-    # unzip in jars folder and use appropriate directory path in my case it's "/home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/" till jars directory
+    # unzip in jars folder and use appropriate directory path in my case it's "./" till jars directory
     # *-----------------------------*
     volumes:
-      - /home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/jars/confluentinc-kafka-connect-jdbc-10.0.1/lib:/kafka/connect/jdbc-connector/
-      - /home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/jars/jmx_prometheus_javaagent-0.16.1.jar:/kafka/connect/metrics/jmx_prometheus_javaagent.jar
-      - /home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/conf/jmx-kafka-connect-config.yml:/kafka/connect/metrics/jmx-kafka-connect-config.yml
+      - ./jars/confluentinc-kafka-connect-jdbc-10.0.1/lib:/kafka/connect/jdbc-connector/
+      - ./jars/jmx_prometheus_javaagent-0.16.1.jar:/kafka/connect/metrics/jmx_prometheus_javaagent.jar
+      - ./conf/jmx-kafka-connect-config.yml:/kafka/connect/metrics/jmx-kafka-connect-config.yml
     networks:
       - kafka-network
 #for JDBC sink
@@ -95,10 +95,10 @@ services:
       STATUS_STORAGE_TOPIC: kafka_connect_statuses
     # *-----------------------------*
     # Head to https://www.confluent.io/hub/ and download confluent-kafka-connect-elasticsearch - direct url https://www.confluent.io/hub/confluentinc/kafka-connect-elasticsearch :
-    # unzip in jars folder and use appropriate directory path in my case it's "/home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/"
+    # unzip in jars folder and use appropriate directory path in my case it's "./"
     # *-----------------------------*
     volumes:
-      - /home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/jars/confluentinc-kafka-connect-elasticsearch-10.0.2/lib:/kafka/connect/elasticsearch
+      - ./jars/confluentinc-kafka-connect-elasticsearch-10.0.2/lib:/kafka/connect/elasticsearch
     networks:
       - kafka-network
   ui:
@@ -144,7 +144,7 @@ services:
     depends_on:
       - jdbc-source-connect
     volumes:
-      - /home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/prometheus:/etc/prometheus/
+      - ./prometheus:/etc/prometheus/
       - prometheus-data:/prometheus
     # *-----------------------------*
     # To refresh the targets:
