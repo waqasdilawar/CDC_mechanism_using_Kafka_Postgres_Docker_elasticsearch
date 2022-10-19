@@ -139,8 +139,7 @@ services:
       - "5433:5432"
     command: postgres -c wal_level=logical
     volumes:
-      - /home/waqasdilawar/Projects/CDC Mechanism using Kafka, Postgres, Docker/postgres-data:/var/lib/postgresql/data
-      - /home/waqasdilawar/DIS/Database/2022-08-29_sms_service.backup:/2022-08-29_sms_service.backup
+      - ./postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=sms_service
       - POSTGRES_USER=postgres
