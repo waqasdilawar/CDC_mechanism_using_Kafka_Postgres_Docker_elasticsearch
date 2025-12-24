@@ -1,18 +1,18 @@
 # Real-time CDC Pipeline with Debezium, Kafka, & Elasticsearch
 
-A production-ready Change Data Capture (CDC) pipeline that streams real-time data changes from **PostgreSQL** to **Kafka** using **Debezium**, with infrastructure ready for **Elasticsearch** indexing.
+A production-ready Change Data Capture (CDC) pipeline that streams real-time data changes from **PostgreSQL** to **Elasticsearch** via **Kafka** using **Debezium**.
 
 ## 🏗 Architecture
 
 ```mermaid
 flowchart LR
-    QS[PostgreSQL] -->|Wal Log| C[Debezium\n Kafka Connect]
-    C -->|CDC Events| K[Kafka]
-    K -->|Store| E[Elasticsearch\n Ready]
+    PG[PostgreSQL] -->|WAL| DBZ[Debezium Source]
+    DBZ -->|CDC Events| K[Kafka]
+    K -->|Sink| ES[Elasticsearch]
     
     subgraph Observability
-        P[Prometheus] -.->|Scrape| C
-        UI[Debezium UI] -.->|Manage| C
+        P[Prometheus] -.->|Scrape| DBZ
+        UI[Debezium UI] -.->|Manage| DBZ
     end
 ```
 
@@ -27,17 +27,23 @@ docker-compose up -d
 ```
 > **Note**: The database `test_cdc` is automatically initialized with the schema (`order_equipment_detail`, `equipment`, `product`) via `database/init_schema.sql`.
 
-### 2. Deploy CDC Connector
-Once the services are up (wait ~30-60s), deploy the Debezium source connector:
+### 2. Deploy Debezium Source Connector
+Once the services are up (wait ~30-60s), deploy the Debezium PostgreSQL source connector:
 
 ```bash
 bash scripts/create_connector.sh
 ```
 
-### 3. Verify Pipeline
-Check the connector status:
+### 3. Deploy Elasticsearch Sink Connector
+Stream CDC events from Kafka to Elasticsearch:
+
 ```bash
-curl -s http://localhost:8083/connectors/local-cdc-with-test-database/status
+bash scripts/setup_es_connector.sh
+```
+
+### 4. Verify Connectors
+```bash
+curl -s http://localhost:8083/connectors | jq .
 ```
 
 ## 📂 Project Structure
@@ -45,16 +51,17 @@ curl -s http://localhost:8083/connectors/local-cdc-with-test-database/status
 | Path | Description |
 |------|-------------|
 | `docker-compose.yml` | Main infrastructure (Zookeeper, Kafka, Connect, Postgres, ES, Prometheus). |
-| `database/init_schema.sql` | Active database schema definitions. |
-| `scripts/` | `create_connector.sh`: Deploys the Debezium Postgres connector.<br>`update_connector.sh`: Commands to update connector config. |
-| `conf/` | Configuration for Prometheus JMX exporter and metrics. |
-| `connect.Dockerfile` | Custom image build with Debezium and JMX exporter. |
+| `database/init_schema.sql` | Database schema (`order_equipment_detail`, `equipment`, `product`). |
+| `scripts/create_connector.sh` | Deploys the Debezium PostgreSQL source connector. |
+| `scripts/setup_es_connector.sh` | Deploys the Elasticsearch sink connector. |
+| `configs/es-sink-connector.json` | Elasticsearch sink connector configuration. |
+| `conf/` | Prometheus JMX exporter and metrics configuration. |
 
 ## 📊 Monitoring & Observability
 
-- **Debezium UI**: [http://localhost:8088](http://localhost:8088) - Graphical interface to view and manage connectors.
-- **Prometheus**: [http://localhost:9001](http://localhost:9001) - metrics scraping from Kafka Connect.
-- **Elasticsearch**: [http://localhost:9200](http://localhost:9200) - Data storage (Sink connector setup required).
+- **Debezium UI**: [http://localhost:8088](http://localhost:8088) — Manage and monitor connectors.
+- **Prometheus**: [http://localhost:9001](http://localhost:9001) — Kafka Connect metrics.
+- **Elasticsearch**: [http://localhost:9200](http://localhost:9200) — Query indexed CDC data.
 
 ## 🛠 Troubleshooting
 
