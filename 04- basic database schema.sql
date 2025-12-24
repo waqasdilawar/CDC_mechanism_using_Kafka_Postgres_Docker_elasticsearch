@@ -63,3 +63,7 @@ CREATE PUBLICATION dbz_full_publication
 
 
 SELECT * FROM pg_replication_slots;
+
+select *
+from order_equipment_detail d
+where d .web_id = 1;
