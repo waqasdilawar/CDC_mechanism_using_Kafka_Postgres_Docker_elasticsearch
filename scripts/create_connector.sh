@@ -1,3 +1,4 @@
+#!/bin/bash
 curl --location 'http://localhost:8083/connectors' \
 --header 'Content-Type: application/json' \
 --data '{

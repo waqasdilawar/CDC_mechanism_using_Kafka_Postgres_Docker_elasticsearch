@@ -1,10 +1,3 @@
--- docker exec -it postgres bash
-
--- psql -U postgres postgres
-
-
-\c test_cdc;
-
 create table order_equipment_detail
 (
     web_id                    bigint not null
