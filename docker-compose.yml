@@ -1,4 +1,3 @@
-version: '3.7'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:5.5.1
@@ -47,7 +46,9 @@ services:
     # Kafka Debezium Connector with metrics enabled
     # Metrics can be accessed on this url http://localhost:8081/metrics
     # *-----------------------------*
-    image: quay.io/debezium/connect
+    build:
+      context: .
+      dockerfile: connect.Dockerfile
     container_name: jdbc-source-connect
     restart: on-failure
     depends_on:
@@ -66,39 +67,9 @@ services:
       KAFKA_OPTS: -javaagent:/kafka/connect/metrics/jmx_prometheus_javaagent.jar=8080:/kafka/connect/metrics/jmx-kafka-connect-config.yml
       JMXHOST: "0.0.0.0"
       JMXPORT: 9012
-    # *-----------------------------*
-    # Head to https://www.confluent.io/hub/ and download confluent-kafka-connect-jdbc - direct url https://www.confluent.io/hub/confluentinc/kafka-connect-jdbc :
-    # unzip in jars folder and use appropriate directory path in my case it's "./" till jars directory
-    # *-----------------------------*
     volumes:
-      - ./jars/confluentinc-kafka-connect-jdbc-10.0.1/lib:/kafka/connect/jdbc-connector/
       - ./jars/jmx_prometheus_javaagent-0.16.1.jar:/kafka/connect/metrics/jmx_prometheus_javaagent.jar
       - ./conf/jmx-kafka-connect-config.yml:/kafka/connect/metrics/jmx-kafka-connect-config.yml
-    networks:
-      - kafka-network
-#for JDBC sink
-  elasticsearch-jdbc-sink-connect:
-    image: quay.io/debezium/connect
-    container_name: elasticsearch-jdbc-connect
-    restart: on-failure
-    depends_on:
-      - zookeeper
-      - broker
-      - elastic-search
-    ports:
-      - "8086:8083"
-    environment:
-      GROUP_ID: 4
-      BOOTSTRAP_SERVERS: broker:29092
-      CONFIG_STORAGE_TOPIC: kafka_connect_configs
-      OFFSET_STORAGE_TOPIC: kafka_connect_offsets
-      STATUS_STORAGE_TOPIC: kafka_connect_statuses
-    # *-----------------------------*
-    # Head to https://www.confluent.io/hub/ and download confluent-kafka-connect-elasticsearch - direct url https://www.confluent.io/hub/confluentinc/kafka-connect-elasticsearch :
-    # unzip in jars folder and use appropriate directory path in my case it's "./"
-    # *-----------------------------*
-    volumes:
-      - ./jars/confluentinc-kafka-connect-elasticsearch-10.0.2/lib:/kafka/connect/elasticsearch
     networks:
       - kafka-network
   ui:
@@ -139,9 +110,9 @@ services:
       - "5433:5432"
     command: postgres -c wal_level=logical
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=sms_service
+      - POSTGRES_DB=test_cdc
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     networks:
@@ -169,3 +140,4 @@ networks:
     driver: bridge
 volumes:
   prometheus-data:
+  postgres-data:

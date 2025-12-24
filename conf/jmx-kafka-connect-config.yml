@@ -1,14 +1,33 @@
+---
+# Minimal JMX Exporter config for Kafka Connect / Debezium
+# Exposes default JVM metrics and selected Kafka Connect metrics.
 startDelaySeconds: 0
 ssl: false
-lowercaseOutputName: false
-lowercaseOutputLabelNames: false
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+# Keep as empty to let the exporter include default mBeans
+# and filter some noisy ones.
 rules:
-  - pattern : "kafka.connect<type=connect-worker-metrics>([^:]+):"
-    name: "kafka_connect_worker_metrics_$1"
-  - pattern : "kafka.connect<type=connect-metrics, client-id=([^:]+)><>([^:]+)"
-    name: "kafka_connect_metrics_$2"
-    labels:
-      client: "$1"
+  # Generic JVM metrics
+  - pattern: 'java.lang<type=(.*)><>(.*)'
+
+  # Kafka Connect metrics
+  - pattern: 'kafka.connect<type=connect-worker-metrics, name=(.*)><>(.*)'
+  - pattern: 'kafka.connect<type=connect-metrics, client-id=(.*), node-id=(.*)><>(.*)'
+  - pattern: 'kafka.connect<type=task-error-metrics, connector=(.*), task=(.*)><>(.*)'
+  - pattern: 'kafka.connect<type=connector-task-metrics, connector=(.*), task=(.*)><>(.*)'
+  - pattern: 'kafka.connect<type=source-task-metrics, connector=(.*), task=(.*)><>(.*)'
+  - pattern: 'kafka.connect<type=sink-task-metrics, connector=(.*), task=(.*)><>(.*)'
+  - pattern: 'kafka.connect<type=connector-metrics, connector=(.*)><>(.*)'
+  - pattern: 'kafka.connect<type=connect-node-metrics, client-id=(.*), node-id=(.*)><>(.*)'
+
+  # Kafka Producer client metrics (for verifying compression)
+  - pattern: 'kafka.producer<type=producer-metrics, client-id=(.*)><>(.*)'
+  - pattern: 'kafka.producer<type=producer-node-metrics, client-id=(.*), node-id=(.*)><>(.*)'
+  - pattern: 'kafka.producer<type=app-info, client-id=(.*)><>(.*)'
+
+  # Debezium metrics (common patterns)
   - pattern: "debezium.([^:]+)<type=connector-metrics, context=([^,]+), server=([^,]+), key=([^>]+)><>RowsScanned"
     name: "debezium_metrics_RowsScanned"
     labels:
