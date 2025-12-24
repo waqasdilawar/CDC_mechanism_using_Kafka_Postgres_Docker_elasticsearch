@@ -6,13 +6,13 @@ A production-ready Change Data Capture (CDC) pipeline that streams real-time dat
 
 ```mermaid
 flowchart LR
-    PG[PostgreSQL] -->|WAL| DBZ[Debezium Source]
-    DBZ -->|CDC Events| K[Kafka]
-    K -->|Sink| ES[Elasticsearch]
+    PostgreSQL -->|WAL| Debezium[Debezium\nSource Connector]
+    Debezium -->|CDC Events| Kafka
+    Kafka -->|Sink Connector| Elasticsearch
     
     subgraph Observability
-        P[Prometheus] -.->|Scrape| DBZ
-        UI[Debezium UI] -.->|Manage| DBZ
+        Prometheus -.->|Scrape| Debezium
+        DebeziumUI[Debezium UI] -.->|Manage| Debezium
     end
 ```
 
@@ -35,11 +35,12 @@ bash scripts/create_connector.sh
 ```
 
 ### 3. Deploy Elasticsearch Sink Connector
-Stream CDC events from Kafka to Elasticsearch:
+Index CDC events from Kafka into Elasticsearch:
 
 ```bash
 bash scripts/setup_es_connector.sh
 ```
+> The script validates the connector deployment and prints the status.
 
 ### 4. Verify Connectors
 ```bash
@@ -62,6 +63,12 @@ curl -s http://localhost:8083/connectors | jq .
 - **Debezium UI**: [http://localhost:8088](http://localhost:8088) — Manage and monitor connectors.
 - **Prometheus**: [http://localhost:9001](http://localhost:9001) — Kafka Connect metrics.
 - **Elasticsearch**: [http://localhost:9200](http://localhost:9200) — Query indexed CDC data.
+
+### Verify Data Flow
+```bash
+# Check Elasticsearch indices
+curl -s http://localhost:9200/_cat/indices?v
+```
 
 ## 🛠 Troubleshooting
 
