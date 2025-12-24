@@ -2,7 +2,6 @@
 
 -- psql -U postgres postgres
 
-create database test_cdc;
 
 \c test_cdc;
 

@@ -64,11 +64,10 @@ services:
       CONFIG_STORAGE_TOPIC: kafka_connect_configss
       OFFSET_STORAGE_TOPIC: kafka_connect_offsetss
       STATUS_STORAGE_TOPIC: kafka_connect_statusess
-      KAFKA_OPTS: -javaagent:/kafka/connect/metrics/jmx_prometheus_javaagent.jar=8080:/kafka/connect/metrics/jmx-kafka-connect-config.yml
+      KAFKA_OPTS: -javaagent:/kafka/libs/jmx_prometheus_javaagent.jar=8080:/kafka/connect/metrics/jmx-kafka-connect-config.yml
       JMXHOST: "0.0.0.0"
       JMXPORT: 9012
     volumes:
-      - ./jars/jmx_prometheus_javaagent-0.16.1.jar:/kafka/connect/metrics/jmx_prometheus_javaagent.jar
       - ./conf/jmx-kafka-connect-config.yml:/kafka/connect/metrics/jmx-kafka-connect-config.yml
     networks:
       - kafka-network
@@ -99,9 +98,7 @@ services:
     # *-----------------------------*
     # To connect to the DB:
     #   docker exec -it postgres bash -c 'psql -U $POSTGRES_USER $POSTGRES_DB'
-    # docker exec -it postgres bash -c 'psql -U postgres sms_service'
-    # restore the database
-    #  pg_restore -h localhost -p 5432 -U postgres -d sms_service -v --clean 2022-08-29_sms_service.backup
+    # docker exec -it postgres bash -c 'psql -U postgres test_cdc'
     # *-----------------------------*
     image: postgres:alpine
     restart: on-failure
