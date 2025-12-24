@@ -1,4 +1,8 @@
-{
+#!/bin/bash
+
+curl -X PUT http://localhost:8083/connectors/local-cdc-with-test-database/config \
+  -H "Content-Type: application/json" \
+  -d '{
   "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
   "slot.name": "debezium_full",
   "slot.drop.on.stop": "false",
@@ -28,4 +32,4 @@
   "transforms.insertKey.fields": "web_id",
   "transforms.extractKey.type": "org.apache.kafka.connect.transforms.ExtractField$Key",
   "transforms.extractKey.field": "web_id"
-}
+}'

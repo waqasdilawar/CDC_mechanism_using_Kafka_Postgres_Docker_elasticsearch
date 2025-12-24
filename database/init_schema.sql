@@ -1,7 +1,3 @@
-create database test_cdc;
-
-\c test_cdc;
-
 create table order_equipment_detail
 (
     web_id                    bigint not null
@@ -67,3 +63,13 @@ SELECT * FROM pg_replication_slots;
 select *
 from order_equipment_detail d
 where d .web_id = 1;
+
+insert into product (web_id, version, date_created, date_updated, manufacturer_id)
+values (1, DEFAULT, DEFAULT, DEFAULT, 1);
+
+insert into equipment (web_id, version, date_updated, date_created, product_id)
+values (3, DEFAULT, DEFAULT, DEFAULT, 1);
+
+insert into order_equipment_detail (web_id, version, date_created, date_updated, equipment_id, last_segment_id,
+                                    last_completed_segment_id)
+values (7, 0, '2025-12-24 16:26:59.373000 +00:00', '2025-12-24 16:27:01.450000 +00:00', 3, 1, 3);
