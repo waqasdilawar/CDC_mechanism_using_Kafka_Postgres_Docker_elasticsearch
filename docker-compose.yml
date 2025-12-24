@@ -47,7 +47,7 @@ services:
     # Kafka Debezium Connector with metrics enabled
     # Metrics can be accessed on this url http://localhost:8081/metrics
     # *-----------------------------*
-    image: debezium/connect:latest
+    image: quay.io/debezium/connect
     container_name: jdbc-source-connect
     restart: on-failure
     depends_on:
@@ -78,7 +78,7 @@ services:
       - kafka-network
 #for JDBC sink
   elasticsearch-jdbc-sink-connect:
-    image: debezium/connect:1.0
+    image: quay.io/debezium/connect
     container_name: elasticsearch-jdbc-connect
     restart: on-failure
     depends_on:
@@ -103,7 +103,7 @@ services:
       - kafka-network
   ui:
     container_name: ui
-    image: debezium/debezium-ui
+    image: quay.io/debezium/debezium-ui
     ports:
       - "8088:8080"
     environment:
