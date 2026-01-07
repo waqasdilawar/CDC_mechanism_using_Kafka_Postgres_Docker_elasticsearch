@@ -49,6 +49,7 @@ services:
     build:
       context: .
       dockerfile: connect.Dockerfile
+    image: jdbc-source-connect:1.0
     container_name: jdbc-source-connect
     restart: on-failure
     depends_on:
@@ -83,7 +84,7 @@ services:
     networks:
       - kafka-network
   elastic-search:
-    image: elasticsearch:8.4.1
+    image: elasticsearch:9.2.3
     container_name: elastic-search
     ports:
       - "9200:9200"
@@ -132,6 +133,19 @@ services:
     command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
     networks:
       - kafka-network
+  trivy:
+    # *-----------------------------*
+    # Trivy security scanner for container images
+    # To scan: docker-compose run --rm trivy
+    # *-----------------------------*
+    image: aquasec/trivy:0.68.2
+    container_name: trivy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - trivy-cache:/root/.cache/
+    command: image jdbc-source-connect:1.0
+    networks:
+      - kafka-network
 
 networks:
   kafka-network:
@@ -139,3 +153,4 @@ networks:
 volumes:
   prometheus-data:
   postgres-data:
+  trivy-cache:
